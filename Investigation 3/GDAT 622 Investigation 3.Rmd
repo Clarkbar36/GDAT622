@@ -1,0 +1,97 @@
+---
+title: "GDAT 622 Investigation 3"
+author: "Alex Clark"
+date: "6/10/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(data.table)
+library(network)
+library(sna)
+library(tidygraph)
+```
+
+# Game of Thrones Network
+
+```{r, include=FALSE}
+paste0("https://raw.githubusercontent.com/mathbeveridge/gameofthrones/master/data/got-s",1:8,"-edges.csv") -> edges
+purrr::map(edges,read_csv) -> edges_tbl
+
+first_season_df <- data.frame(edges_tbl[[1]]) %>% dplyr::top_n(15,Weight)
+fourth_season_df <- data.frame(edges_tbl[[4]]) %>% dplyr::top_n(15,Weight)
+last_season_df <- data.frame(edges_tbl[[8]]) %>% dplyr::top_n(15,Weight)
+
+first_season_network <- as.network(first_season_df, matrix.type='edgelist')
+fourth_season_network <- as.network(fourth_season_df, matrix.type='edgelist')
+last_season_network <- as.network(last_season_df, matrix.type='edgelist')
+```
+
+I have seen the show and read the books. I know who the main characters are and who the fan favorite characters are. I'm planning on using sna's centrality formulas to see if the data agrees with who the main characters are and follows the fan favorites. I will be looking at three different parts of the data, the first season, the fourth season (half way through the series) and the last season. I would expect the main characters to stand out in the plots. 
+
+## First Season
+First looking at degree centrality:
+```{r}
+first_deg <- (sna::degree(first_season_network)) / 2 
+network::set.vertex.attribute(first_season_network, 
+                              "deg", 
+                              value = first_deg)
+
+plot.network(first_season_network, vertex.cex="deg", displaylabels = TRUE)
+```
+
+Now looking at betweeness of the first season:
+```{r}
+first_btwn <- sna::betweenness(first_season_network) / 3
+network::set.vertex.attribute(first_season_network, 
+                              "btwn", 
+                              value = first_btwn)
+plot.network(first_season_network, vertex.cex="btwn", displaylabels = TRUE)
+```
+
+This makes sense, the first season primarily focuses on Ned Stark, he is what you think is the main character of the story, until his untimely ending. There is also alot of what seems like secondary characters that feel like are there to just build out the world.
+
+## Fourth Season
+
+Degree centrality fourth season:
+```{r}
+fourth_deg <- (sna::degree(fourth_season_network)) / 2 
+network::set.vertex.attribute(fourth_season_network, 
+                              "deg", 
+                              value = fourth_deg)
+plot.network(fourth_season_network, vertex.cex="deg", displaylabels = TRUE)
+```
+
+Betweeness of the fourth season:
+```{r}
+fourth_btwn <- sna::betweenness(fourth_season_network) / 3
+network::set.vertex.attribute(fourth_season_network, 
+                              "btwn", 
+                              value = fourth_btwn)
+plot.network(fourth_season_network, vertex.cex="btwn", displaylabels = TRUE)
+```
+
+These also make alot of sense, the story line gravitates towards Kings Landing, especially Tyrion and the politics of the realm. There are still alot of side characters, with the true hero and villian lurking outside the center of the graphs. Where the first season focused on Winterfell, this graph shows the fourth season focused on the characters in Kings Landing.
+
+## Last Season:
+
+Degree centrality last season:
+```{r}
+last_deg <- (sna::degree(last_season_network)) / 2 
+network::set.vertex.attribute(last_season_network, 
+                              "deg", 
+                              value = last_deg)
+plot.network(last_season_network, vertex.cex="deg", displaylabels = TRUE)
+```
+
+Betweeness of the last season:
+```{r}
+last_btwn <- sna::betweenness(last_season_network) / 3
+network::set.vertex.attribute(last_season_network, 
+                              "btwn", 
+                              value = last_btwn)
+plot.network(last_season_network, vertex.cex="btwn", displaylabels = TRUE)
+```
+
+These graphs are interesting and actually seem to break a bit from who I think of as the main characters. I would have said the hero was Jon and the villian ended up being Daenerys, while the show made Bran the hero. These graphs don't really convey that thought, looking at the graphs alone, it would appear Tyrion is the main character the whole last season is centered around, when really he had a small role in the last season. I think this shows that Tyrion, who became by and far the fan favorite, was written into the final season as fan service, and given lots of interactions because people liked the watch that character. 
